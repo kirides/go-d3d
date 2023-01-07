@@ -512,12 +512,13 @@ func (obj *IDXGIOutputDuplication) AcquireNextFrame(timeoutMs uint, pFrameInfo *
 	return uint32(ret)
 }
 
-func (obj *IDXGIOutputDuplication) ReleaseFrame() {
-	syscall.Syscall(
+func (obj *IDXGIOutputDuplication) ReleaseFrame() uint32 {
+	ret, _, _ := syscall.Syscall(
 		obj.vtbl.ReleaseFrame,
 		1,
 		uintptr(unsafe.Pointer(obj)),
 		0,
 		0,
 	)
+	return uint32(ret)
 }
