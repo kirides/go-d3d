@@ -36,20 +36,16 @@ type IDXGIFactory1 struct {
 }
 
 func (obj *IDXGIFactory1) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
 
 func (obj *IDXGIFactory1) EnumAdapters1(adapter uint, pp **IDXGIAdapter1) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.EnumAdapters1,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(adapter),
 		uintptr(unsafe.Pointer(pp)),
@@ -58,12 +54,10 @@ func (obj *IDXGIFactory1) EnumAdapters1(adapter uint, pp **IDXGIAdapter1) int32 
 }
 
 func CreateDXGIFactory1(ppFactory **IDXGIFactory1) error {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		procCreateDXGIFactory1.Addr(),
-		2,
 		uintptr(unsafe.Pointer(&IID_IDXGIFactory1)),
 		uintptr(unsafe.Pointer(ppFactory)),
-		0,
 	)
 	if ret != 0 {
 		return d3d.HRESULT(ret)
@@ -77,20 +71,16 @@ type IDXGIAdapter1 struct {
 }
 
 func (obj *IDXGIAdapter1) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
 
 func (obj *IDXGIAdapter1) EnumOutputs(output uint, pp **IDXGIOutput) uint32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.EnumOutputs,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(output),
 		uintptr(unsafe.Pointer(pp)),
@@ -103,9 +93,8 @@ type IDXGIAdapter struct {
 }
 
 func (obj *IDXGIAdapter) EnumOutputs(output uint, pp **IDXGIOutput) uint32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.EnumOutputs,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(output),
 		uintptr(unsafe.Pointer(pp)),
@@ -114,12 +103,9 @@ func (obj *IDXGIAdapter) EnumOutputs(output uint, pp **IDXGIOutput) uint32 {
 }
 
 func (obj *IDXGIAdapter) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -129,12 +115,10 @@ type IDXGIDevice struct {
 }
 
 func (obj *IDXGIDevice) GetGPUThreadPriority(priority *int) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetGPUThreadPriority,
-		2,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(priority)),
-		0,
 	)
 	return int32(ret)
 }
@@ -142,9 +126,8 @@ func (obj *IDXGIDevice) QueryInterface(iid windows.GUID, pp interface{}) int32 {
 	return com.ReflectQueryInterface(obj, obj.vtbl.QueryInterface, &iid, pp)
 }
 func (obj *IDXGIDevice) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetParent,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(&iid)),
 		uintptr(unsafe.Pointer(pp)),
@@ -152,22 +135,17 @@ func (obj *IDXGIDevice) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
 	return int32(ret)
 }
 func (obj *IDXGIDevice) GetAdapter(pAdapter **IDXGIAdapter) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetAdapter,
-		2,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(pAdapter)),
-		0,
 	)
 	return int32(ret)
 }
 func (obj *IDXGIDevice) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -181,9 +159,8 @@ func (obj *IDXGIDevice1) QueryInterface(iid windows.GUID, pp interface{}) int32 
 }
 
 func (obj *IDXGIDevice1) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetParent,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(&iid)),
 		uintptr(unsafe.Pointer(pp)),
@@ -192,23 +169,18 @@ func (obj *IDXGIDevice1) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
 	return int32(ret)
 }
 func (obj *IDXGIDevice1) GetAdapter(pAdapter *IDXGIAdapter) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetAdapter,
-		2,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(&pAdapter)),
-		0,
 	)
 
 	return int32(ret)
 }
 func (obj *IDXGIDevice1) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -222,9 +194,8 @@ func (obj *IDXGIOutput) QueryInterface(iid windows.GUID, pp interface{}) int32 {
 }
 
 func (obj *IDXGIOutput) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetParent,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(&iid)),
 		uintptr(unsafe.Pointer(pp)),
@@ -233,12 +204,9 @@ func (obj *IDXGIOutput) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
 }
 
 func (obj *IDXGIOutput) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -248,9 +216,8 @@ type IDXGIOutput1 struct {
 }
 
 func (obj *IDXGIOutput1) DuplicateOutput(device1 *IDXGIDevice1, ppOutputDuplication **IDXGIOutputDuplication) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.DuplicateOutput,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(device1)),
 		uintptr(unsafe.Pointer(ppOutputDuplication)),
@@ -259,9 +226,8 @@ func (obj *IDXGIOutput1) DuplicateOutput(device1 *IDXGIDevice1, ppOutputDuplicat
 }
 
 func (obj *IDXGIOutput1) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetParent,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(&iid)),
 		uintptr(unsafe.Pointer(pp)),
@@ -270,12 +236,9 @@ func (obj *IDXGIOutput1) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
 }
 
 func (obj *IDXGIOutput1) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -288,9 +251,8 @@ type DXGI_FORMAT uint32
 
 func (obj *IDXGIOutput5) DuplicateOutput1(device1 *IDXGIDevice1, flags uint, pSupportedFormats []DXGI_FORMAT, ppOutputDuplication **IDXGIOutputDuplication) int32 {
 	pFormats := &pSupportedFormats[0]
-	ret, _, _ := syscall.Syscall6(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.DuplicateOutput1,
-		6,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(device1)),
 		uintptr(flags),
@@ -302,9 +264,8 @@ func (obj *IDXGIOutput5) DuplicateOutput1(device1 *IDXGIDevice1, flags uint, pSu
 }
 
 func (obj *IDXGIOutput5) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetParent,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(&iid)),
 		uintptr(unsafe.Pointer(pp)),
@@ -313,12 +274,9 @@ func (obj *IDXGIOutput5) GetParent(iid windows.GUID, pp *unsafe.Pointer) int32 {
 }
 
 func (obj *IDXGIOutput5) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -331,12 +289,9 @@ func (obj *IDXGIResource) QueryInterface(iid windows.GUID, pp interface{}) int32
 	return com.ReflectQueryInterface(obj, obj.vtbl.QueryInterface, &iid, pp)
 }
 func (obj *IDXGIResource) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -349,9 +304,8 @@ func (obj *IDXGISurface) QueryInterface(iid windows.GUID, pp interface{}) int32 
 	return com.ReflectQueryInterface(obj, obj.vtbl.QueryInterface, &iid, pp)
 }
 func (obj *IDXGISurface) Map(pLockedRect *DXGI_MAPPED_RECT, mapFlags uint32) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Map,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(pLockedRect)),
 		uintptr(mapFlags),
@@ -359,22 +313,16 @@ func (obj *IDXGISurface) Map(pLockedRect *DXGI_MAPPED_RECT, mapFlags uint32) int
 	return int32(ret)
 }
 func (obj *IDXGISurface) Unmap() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Unmap,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
 func (obj *IDXGISurface) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -389,15 +337,12 @@ func (obj *IDXGIOutputDuplication) GetFrameMoveRects(buffer []DXGI_OUTDUPL_MOVE_
 		buf = &buffer[0]
 	}
 	size := uint32(len(buffer) * 24)
-	ret, _, _ := syscall.Syscall6(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetFrameMoveRects,
-		4,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(size),
 		uintptr(unsafe.Pointer(buf)),
 		uintptr(unsafe.Pointer(rectsRequired)),
-		0,
-		0,
 	)
 	*rectsRequired = *rectsRequired / 24
 	return int32(ret)
@@ -408,15 +353,12 @@ func (obj *IDXGIOutputDuplication) GetFrameDirtyRects(buffer []RECT, rectsRequir
 		buf = &buffer[0]
 	}
 	size := uint32(len(buffer) * 16)
-	ret, _, _ := syscall.Syscall6(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetFrameDirtyRects,
-		4,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(size),
 		uintptr(unsafe.Pointer(buf)),
 		uintptr(unsafe.Pointer(rectsRequired)),
-		0,
-		0,
 	)
 	*rectsRequired = *rectsRequired / 16
 	return int32(ret)
@@ -432,93 +374,72 @@ func (obj *IDXGIOutputDuplication) GetFramePointerShape(pointerShapeBufferSize u
 		buf = &pPointerShapeBuffer[0]
 	}
 
-	ret, _, _ := syscall.Syscall6(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetFramePointerShape,
-		5,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(pointerShapeBufferSize),
 		uintptr(unsafe.Pointer(buf)),
 		uintptr(unsafe.Pointer(pPointerShapeBufferSizeRequired)),
 		uintptr(unsafe.Pointer(pPointerShapeInfo)),
-		0,
 	)
 
 	return int32(ret)
 }
 func (obj *IDXGIOutputDuplication) GetDesc(desc *DXGI_OUTDUPL_DESC) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetDesc,
-		2,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(desc)),
-		0,
 	)
 	return int32(ret)
 }
 
 func (obj *IDXGIOutputDuplication) MapDesktopSurface(pLockedRect *DXGI_MAPPED_RECT) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.MapDesktopSurface,
-		2,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(pLockedRect)),
-		0,
 	)
 	return int32(ret)
 }
 func (obj *IDXGIOutputDuplication) UnMapDesktopSurface() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.UnMapDesktopSurface,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
 func (obj *IDXGIOutputDuplication) AddRef() uint32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.AddRef,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return uint32(ret)
 }
 
 func (obj *IDXGIOutputDuplication) Release() uint32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return uint32(ret)
 }
 
 func (obj *IDXGIOutputDuplication) AcquireNextFrame(timeoutMs uint, pFrameInfo *DXGI_OUTDUPL_FRAME_INFO, ppDesktopResource **IDXGIResource) uint32 {
-	ret, _, _ := syscall.Syscall6(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.AcquireNextFrame,    // function address
-		4,                            // number of parameters to this function
 		uintptr(unsafe.Pointer(obj)), // always pass the COM object address first
 		uintptr(timeoutMs),           // then all function parameters follow
 		uintptr(unsafe.Pointer(pFrameInfo)),
 		uintptr(unsafe.Pointer(ppDesktopResource)),
-		0,
-		0,
 	)
 	return uint32(ret)
 }
 
 func (obj *IDXGIOutputDuplication) ReleaseFrame() uint32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.ReleaseFrame,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return uint32(ret)
 }

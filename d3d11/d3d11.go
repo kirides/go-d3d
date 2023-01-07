@@ -68,12 +68,11 @@ func _D3D11CreateDevice(ppDevice **ID3D11Device, ppDeviceContext **ID3D11DeviceC
 		//  D3D11_CREATE_DEVICE_DEBUG |
 		0
 
-	ret, _, _ := syscall.Syscall12(
+	ret, _, _ := syscall.SyscallN(
 		procD3D11CreateDevice.Addr(),
-		10,
 		uintptr(unsafe.Pointer(adapter1)),   // pAdapter
 		uintptr(0),                          // driverType: 1 = Hardware
-		0,                                   // software
+		uintptr(0),                          // software
 		uintptr(flags),                      // flags
 		uintptr(unsafe.Pointer(&fflags[0])), // supported feature levels
 		uintptr(len(fflags)),                // number of levels
@@ -81,8 +80,6 @@ func _D3D11CreateDevice(ppDevice **ID3D11Device, ppDeviceContext **ID3D11DeviceC
 		uintptr(unsafe.Pointer(ppDevice)),        // *D3D11Device
 		uintptr(unsafe.Pointer(&featureLevel)),   // feature level
 		uintptr(unsafe.Pointer(ppDeviceContext)), // *D3D11DeviceContext
-		0,
-		0,
 	)
 
 	if ret != 0 {
@@ -109,22 +106,17 @@ type ID3D11Texture2D struct {
 }
 
 func (obj *ID3D11Texture2D) GetDesc(desc *D3D11_TEXTURE2D_DESC) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetDesc,
-		2,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(desc)),
-		0,
 	)
 	return int32(ret)
 }
 func (obj *ID3D11Texture2D) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -141,26 +133,20 @@ func (obj *ID3D11Device) QueryInterface(iid windows.GUID, pp interface{}) int32 
 }
 
 func (obj *ID3D11Device) CreateTexture2D(desc *D3D11_TEXTURE2D_DESC, ppTexture2D **ID3D11Texture2D) int32 {
-	ret, _, _ := syscall.Syscall6(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.CreateTexture2D,
-		4,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(desc)),
-		0,
+		uintptr(0),
 		uintptr(unsafe.Pointer(ppTexture2D)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
 
 func (obj *ID3D11Device) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -170,26 +156,20 @@ type ID3D11Device1 struct {
 }
 
 func (obj *ID3D11Device1) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
 
 func (obj *ID3D11Device1) CreateTexture2D(desc *D3D11_TEXTURE2D_DESC, ppTexture2D **ID3D11Texture2D) int32 {
-	ret, _, _ := syscall.Syscall6(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.CreateTexture2D,
-		4,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(desc)),
-		0,
+		uintptr(0),
 		uintptr(unsafe.Pointer(ppTexture2D)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -199,9 +179,8 @@ type ID3D11DeviceContext struct {
 }
 
 func (obj *ID3D11DeviceContext) CopyResourceDXGI(dst, src *dxgi.IDXGIResource) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.CopyResource,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(dst)),
 		uintptr(unsafe.Pointer(src)),
@@ -209,9 +188,8 @@ func (obj *ID3D11DeviceContext) CopyResourceDXGI(dst, src *dxgi.IDXGIResource) i
 	return int32(ret)
 }
 func (obj *ID3D11DeviceContext) CopyResource2D(dst, src *ID3D11Texture2D) int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.CopyResource,
-		3,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(dst)),
 		uintptr(unsafe.Pointer(src)),
@@ -219,9 +197,8 @@ func (obj *ID3D11DeviceContext) CopyResource2D(dst, src *ID3D11Texture2D) int32 
 	return int32(ret)
 }
 func (obj *ID3D11DeviceContext) CopySubresourceRegion2D(dst *ID3D11Texture2D, dstSubResource, dstX, dstY, dstZ uint32, src *ID3D11Texture2D, srcSubResource uint32, pSrcBox *D3D11_BOX) int32 {
-	ret, _, _ := syscall.Syscall9(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.CopySubresourceRegion,
-		9,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(dst)),
 		uintptr(dstSubResource),
@@ -236,9 +213,8 @@ func (obj *ID3D11DeviceContext) CopySubresourceRegion2D(dst *ID3D11Texture2D, ds
 }
 
 func (obj *ID3D11DeviceContext) CopySubresourceRegion(dst *ID3D11Resource, dstSubResource, dstX, dstY, dstZ uint32, src *ID3D11Resource, srcSubResource uint32, pSrcBox *D3D11_BOX) int32 {
-	ret, _, _ := syscall.Syscall9(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.CopySubresourceRegion,
-		9,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(dst)),
 		uintptr(dstSubResource),
@@ -252,12 +228,9 @@ func (obj *ID3D11DeviceContext) CopySubresourceRegion(dst *ID3D11Resource, dstSu
 	return int32(ret)
 }
 func (obj *ID3D11DeviceContext) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }
@@ -267,12 +240,9 @@ type ID3D11Resource struct {
 }
 
 func (obj *ID3D11Resource) Release() int32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return int32(ret)
 }

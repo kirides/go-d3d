@@ -12,9 +12,8 @@ func ReflectQueryInterface(self interface{}, method uintptr, interfaceID *window
 	selfValue := reflect.ValueOf(self).Elem()
 	objValue := reflect.ValueOf(obj).Elem()
 
-	hr, _, _ := syscall.Syscall(
+	hr, _, _ := syscall.SyscallN(
 		method,
-		3,
 		selfValue.UnsafeAddr(),
 		uintptr(unsafe.Pointer(interfaceID)),
 		objValue.Addr().Pointer())
