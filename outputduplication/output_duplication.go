@@ -107,15 +107,15 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 	var hr int32
 	desc := dxgi.DXGI_OUTDUPL_DESC{}
 	hr = dup.outputDuplication.GetDesc(&desc)
-	if d3d.HRESULT(hr).Failed() {
-		return nil, nil, nil, fmt.Errorf("failed to get the description. %w", d3d.HRESULT(hr))
+	if hr := d3d.HRESULT(hr); hr.Failed() {
+		return nil, nil, nil, fmt.Errorf("failed to get the description. %w", hr)
 	}
 
 	if desc.DesktopImageInSystemMemory != 0 {
 		// TODO: Figure out WHEN exactly this can occur, and if we can make use of it
 		dup.size = dxgi.POINT{X: int32(desc.ModeDesc.Width), Y: int32(desc.ModeDesc.Height)}
 		hr = dup.outputDuplication.MapDesktopSurface(&dup.mappedRect)
-		if !d3d.HRESULT(hr).Failed() {
+		if hr := d3d.HRESULT(hr); !hr.Failed() {
 			return dup.outputDuplication.UnMapDesktopSurface, &dup.mappedRect, &dup.size, nil
 		}
 	}
@@ -129,8 +129,8 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 	dup.ReleaseFrame()
 	hrF := dup.outputDuplication.AcquireNextFrame(timeoutMs, &frameInfo, &desktop)
 	dup.acquiredFrame = true
-	if d3d.HRESULT(int32(hrF)).Failed() {
-		if d3d.HRESULT(hrF) == d3d.DXGI_ERROR_WAIT_TIMEOUT {
+	if hr := d3d.HRESULT(hrF); hr.Failed() {
+		if hr == d3d.DXGI_ERROR_WAIT_TIMEOUT {
 			return nil, nil, nil, ErrNoImageYet
 		}
 		return nil, nil, nil, fmt.Errorf("failed to AcquireNextFrame. %w", d3d.HRESULT(hrF))
@@ -151,15 +151,15 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 	}
 	var desktop2d *d3d11.ID3D11Texture2D
 	hr = desktop.QueryInterface(d3d11.IID_ID3D11Texture2D, &desktop2d)
-	if d3d.HRESULT(hr).Failed() {
-		return nil, nil, nil, fmt.Errorf("failed to QueryInterface(iid_ID3D11Texture2D, ...). %w", d3d.HRESULT(hr))
+	if hr := d3d.HRESULT(hr); hr.Failed() {
+		return nil, nil, nil, fmt.Errorf("failed to QueryInterface(iid_ID3D11Texture2D, ...). %w", hr)
 	}
 	defer desktop2d.Release()
 
 	if dup.stagedTex == nil {
 		hr = dup.initializeStage(desktop2d)
-		if d3d.HRESULT(hr).Failed() {
-			return nil, nil, nil, fmt.Errorf("failed to InitializeStage. %w", d3d.HRESULT(hr))
+		if hr := d3d.HRESULT(hr); hr.Failed() {
+			return nil, nil, nil, fmt.Errorf("failed to InitializeStage. %w", hr)
 		}
 	}
 
@@ -172,8 +172,8 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 				dup.movedRects = make([]dxgi.DXGI_OUTDUPL_MOVE_RECT, moveRectsRequired)
 			}
 			hr = dup.outputDuplication.GetFrameMoveRects(dup.movedRects, &moveRectsRequired)
-			if d3d.HRESULT(hr).Failed() {
-				if d3d.HRESULT(hr) == d3d.DXGI_ERROR_MORE_DATA {
+			if hr := d3d.HRESULT(hr); hr.Failed() {
+				if hr == d3d.DXGI_ERROR_MORE_DATA {
 					continue
 				}
 				return nil, nil, nil, fmt.Errorf("failed to GetFrameMoveRects. %w", d3d.HRESULT(hr))
@@ -188,8 +188,8 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 				dup.dirtyRects = make([]dxgi.RECT, dirtyRectsRequired)
 			}
 			hr = dup.outputDuplication.GetFrameDirtyRects(dup.dirtyRects, &dirtyRectsRequired)
-			if d3d.HRESULT(hr).Failed() {
-				if d3d.HRESULT(hr) == d3d.DXGI_ERROR_MORE_DATA {
+			if hr := d3d.HRESULT(hr); hr.Failed() {
+				if hr == d3d.DXGI_ERROR_MORE_DATA {
 					continue
 				}
 				return nil, nil, nil, fmt.Errorf("failed to GetFrameDirtyRects. %w", d3d.HRESULT(hr))
@@ -226,8 +226,8 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 	}
 
 	hr = dup.surface.Map(&dup.mappedRect, dxgi.DXGI_MAP_READ)
-	if d3d.HRESULT(hr).Failed() {
-		return nil, nil, nil, fmt.Errorf("failed to surface_.Map(...). %v", d3d.HRESULT(hr))
+	if hr := d3d.HRESULT(hr); hr.Failed() {
+		return nil, nil, nil, fmt.Errorf("failed to surface_.Map(...). %v", hr)
 	}
 	return dup.surface.Unmap, &dup.mappedRect, &dup.size, nil
 }
@@ -401,19 +401,17 @@ func (dup *OutputDuplicator) drawPointer(img *image.RGBA) error {
 
 // NewIDXGIOutputDuplication creates a new OutputDuplicator
 func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D11DeviceContext, output uint) (*OutputDuplicator, error) {
-	var hr int32
-
 	// DEBUG
 
 	var d3dDebug *d3d11.ID3D11Debug
-	hr = device.QueryInterface(d3d11.IID_ID3D11Debug, &d3dDebug)
-	if !d3d.HRESULT(hr).Failed() {
+	hr := device.QueryInterface(d3d11.IID_ID3D11Debug, &d3dDebug)
+	if hr := d3d.HRESULT(hr); !hr.Failed() {
 		defer d3dDebug.Release()
 
 		var d3dInfoQueue *d3d11.ID3D11InfoQueue
-		hr = d3dDebug.QueryInterface(d3d11.IID_ID3D11InfoQueue, &d3dInfoQueue)
-		if d3d.HRESULT(hr).Failed() {
-			return nil, fmt.Errorf("failed at device.QueryInterface. %w", d3d.HRESULT(hr))
+		hr := d3dDebug.QueryInterface(d3d11.IID_ID3D11InfoQueue, &d3dInfoQueue)
+		if hr := d3d.HRESULT(hr); hr.Failed() {
+			return nil, fmt.Errorf("failed at device.QueryInterface. %w", hr)
 		}
 		defer d3dInfoQueue.Release()
 		// defer d3dDebug.ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL)
@@ -421,15 +419,15 @@ func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D
 
 	var dxgiDevice1 *dxgi.IDXGIDevice1
 	hr = device.QueryInterface(dxgi.IID_IDXGIDevice1, &dxgiDevice1)
-	if d3d.HRESULT(hr).Failed() {
-		return nil, fmt.Errorf("failed at device.QueryInterface. %w", d3d.HRESULT(hr))
+	if hr := d3d.HRESULT(hr); hr.Failed() {
+		return nil, fmt.Errorf("failed at device.QueryInterface. %w", hr)
 	}
 	defer dxgiDevice1.Release()
 
 	var pdxgiAdapter unsafe.Pointer
 	hr = dxgiDevice1.GetParent(dxgi.IID_IDXGIAdapter1, &pdxgiAdapter)
-	if d3d.HRESULT(hr).Failed() {
-		return nil, fmt.Errorf("failed at dxgiDevice1.GetAdapter. %w", d3d.HRESULT(hr))
+	if hr := d3d.HRESULT(hr); hr.Failed() {
+		return nil, fmt.Errorf("failed at dxgiDevice1.GetAdapter. %w", hr)
 	}
 	dxgiAdapter := (*dxgi.IDXGIAdapter1)(pdxgiAdapter)
 	defer dxgiAdapter.Release()
@@ -437,15 +435,15 @@ func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D
 	var dxgiOutput *dxgi.IDXGIOutput
 	// const DXGI_ERROR_NOT_FOUND = 0x887A0002
 	hr = int32(dxgiAdapter.EnumOutputs(output, &dxgiOutput))
-	if d3d.HRESULT(hr).Failed() {
-		return nil, fmt.Errorf("failed at dxgiAdapter.EnumOutputs. %w", d3d.HRESULT(hr))
+	if hr := d3d.HRESULT(hr); hr.Failed() {
+		return nil, fmt.Errorf("failed at dxgiAdapter.EnumOutputs. %w", hr)
 	}
 	defer dxgiOutput.Release()
 
 	var dxgiOutput5 *dxgi.IDXGIOutput5
 	hr = dxgiOutput.QueryInterface(dxgi.IID_IDXGIOutput5, &dxgiOutput5)
-	if d3d.HRESULT(hr).Failed() {
-		return nil, fmt.Errorf("failed at dxgiOutput.QueryInterface. %w", d3d.HRESULT(hr))
+	if hr := d3d.HRESULT(hr); hr.Failed() {
+		return nil, fmt.Errorf("failed at dxgiOutput.QueryInterface. %w", hr)
 	}
 	defer dxgiOutput5.Release()
 	var dup *dxgi.IDXGIOutputDuplication
@@ -455,19 +453,19 @@ func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D
 		// DXGI_FORMAT_B8G8R8A8_UNORM,
 	}, &dup)
 	needsSwizzle := false
-	if d3d.HRESULT(hr).Failed() {
+	if hr := d3d.HRESULT(hr); hr.Failed() {
 		needsSwizzle = true
 		// fancy stuff not supported :/
 		// fmt.Printf("Info: failed to use dxgiOutput5.DuplicateOutput1, falling back to dxgiOutput1.DuplicateOutput. Missing manifest with DPI awareness set to \"PerMonitorV2\"? %v\n", _DXGI_ERROR(hr))
 		var dxgiOutput1 *dxgi.IDXGIOutput1
-		hr = dxgiOutput.QueryInterface(dxgi.IID_IDXGIOutput1, &dxgiOutput1)
-		if d3d.HRESULT(hr).Failed() {
-			return nil, fmt.Errorf("failed at dxgiOutput.QueryInterface. %w", d3d.HRESULT(hr))
+		hr := dxgiOutput.QueryInterface(dxgi.IID_IDXGIOutput1, &dxgiOutput1)
+		if hr := d3d.HRESULT(hr); hr.Failed() {
+			return nil, fmt.Errorf("failed at dxgiOutput.QueryInterface. %w", hr)
 		}
 		defer dxgiOutput1.Release()
 		hr = dxgiOutput1.DuplicateOutput(dxgiDevice1, &dup)
-		if d3d.HRESULT(hr).Failed() {
-			return nil, fmt.Errorf("failed at dxgiOutput1.DuplicateOutput. %w", d3d.HRESULT(hr))
+		if hr := d3d.HRESULT(hr); hr.Failed() {
+			return nil, fmt.Errorf("failed at dxgiOutput1.DuplicateOutput. %w", hr)
 		}
 	}
 
