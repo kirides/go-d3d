@@ -255,10 +255,10 @@ func (dup *OutputDuplicator) GetImage(img *image.RGBA, timeoutMs uint) error {
 	var imgStart, dataStart, dataEnd int
 	// copy source bytes into image.RGBA.Pix, skipping padding
 	for i := 0; i < int(size.Y); i++ {
-		imgStart = i * contentWidth
-		dataStart = i * dataWidth
 		dataEnd = dataStart + contentWidth
 		copy(img.Pix[imgStart:], data[dataStart:dataEnd])
+		imgStart += contentWidth
+		dataStart += dataWidth
 	}
 
 	dup.drawPointer(img)
