@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 
-	"reflect"
 	"unsafe"
 
 	"github.com/kirides/go-d3d"
@@ -242,16 +241,11 @@ func (dup *OutputDuplicator) GetImage(img *image.RGBA, timeoutMs uint) error {
 
 	// docs are unclear, but pitch is the total width of each row
 	dataSize := int(mappedRect.Pitch) * int(size.Y)
-
-	var data []byte
-	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))
-	sh.Data = mappedRect.PBits
-	sh.Len = dataSize
-	sh.Cap = dataSize
+	data := unsafe.Slice((*byte)(unsafe.Pointer(mappedRect.PBits)), dataSize)
 
 	contentWidth := int(size.X) * 4
 	dataWidth := int(mappedRect.Pitch)
-	
+
 	var imgStart, dataStart, dataEnd int
 	// copy source bytes into image.RGBA.Pix, skipping padding
 	for i := 0; i < int(size.Y); i++ {
