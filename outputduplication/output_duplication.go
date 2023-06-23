@@ -266,16 +266,6 @@ func (dup *OutputDuplicator) GetImage(img *image.RGBA, timeoutMs uint) error {
 		swizzle.BGRA(img.Pix)
 	}
 
-	// manual swizzle B <-> R
-
-	// for i := int32(0); i < bitmapDataSize; i += 4 {
-	// 	v0 := *(*uint8)(unsafe.Pointer(hMem + uintptr(i)))
-	// 	v1 := *(*uint8)(unsafe.Pointer(hMem + uintptr(i) + 1))
-	// 	v2 := *(*uint8)(unsafe.Pointer(hMem + uintptr(i) + 2))
-
-	// 	// BGRA => RGBA, no need to read alpha, always 255.
-	// 	img.Pix[i], img.Pix[i+1], img.Pix[i+2], img.Pix[i+3] = v2, v1, v0, 255
-	// }
 	return nil
 }
 
