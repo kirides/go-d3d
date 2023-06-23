@@ -238,28 +238,28 @@ func (dup *OutputDuplicator) GetImage(img *image.RGBA, timeoutMs uint) error {
 		return err
 	}
 	defer unmap()
-	hMem := mappedRect.PBits
 
-	bitmapDataSize := int32(((int64(size.X)*32 + 31) / 32) * 4 * int64(size.Y))
+	// docs are unclear, but pitch is the total width of each row
+	dataSize := int(mappedRect.Pitch) * int(size.Y)
+	data := unsafe.Slice((*byte)(unsafe.Pointer(mappedRect.PBits)), dataSize)
 
-	// copy source bytes into image.RGBA.Pix using memory interpretation
-	imageBytes := ((*[1 << 30]byte)(unsafe.Pointer(hMem)))[:bitmapDataSize:bitmapDataSize]
-	copy(img.Pix[:bitmapDataSize], imageBytes)
+	contentWidth := int(size.X) * 4
+	dataWidth := int(mappedRect.Pitch)
+
+	var imgStart, dataStart, dataEnd int
+	// copy source bytes into image.RGBA.Pix, skipping padding
+	for i := 0; i < int(size.Y); i++ {
+		dataEnd = dataStart + contentWidth
+		copy(img.Pix[imgStart:], data[dataStart:dataEnd])
+		imgStart += contentWidth
+		dataStart += dataWidth
+	}
+
 	dup.drawPointer(img)
 	if dup.needsSwizzle {
 		swizzle.BGRA(img.Pix)
 	}
 
-	// manual swizzle B <-> R
-
-	// for i := int32(0); i < bitmapDataSize; i += 4 {
-	// 	v0 := *(*uint8)(unsafe.Pointer(hMem + uintptr(i)))
-	// 	v1 := *(*uint8)(unsafe.Pointer(hMem + uintptr(i) + 1))
-	// 	v2 := *(*uint8)(unsafe.Pointer(hMem + uintptr(i) + 2))
-
-	// 	// BGRA => RGBA, no need to read alpha, always 255.
-	// 	img.Pix[i], img.Pix[i+1], img.Pix[i+2], img.Pix[i+3] = v2, v1, v0, 255
-	// }
 	return nil
 }
 
