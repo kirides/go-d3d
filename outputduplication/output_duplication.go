@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 
+	"reflect"
 	"unsafe"
 
 	"github.com/kirides/go-d3d"
@@ -238,13 +239,28 @@ func (dup *OutputDuplicator) GetImage(img *image.RGBA, timeoutMs uint) error {
 		return err
 	}
 	defer unmap()
-	hMem := mappedRect.PBits
 
-	bitmapDataSize := int32(((int64(size.X)*32 + 31) / 32) * 4 * int64(size.Y))
+	// docs are unclear, but pitch is the total width of each row
+	dataSize := int(mappedRect.Pitch) * int(size.Y)
 
-	// copy source bytes into image.RGBA.Pix using memory interpretation
-	imageBytes := ((*[1 << 30]byte)(unsafe.Pointer(hMem)))[:bitmapDataSize:bitmapDataSize]
-	copy(img.Pix[:bitmapDataSize], imageBytes)
+	var data []byte
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))
+	sh.Data = mappedRect.PBits
+	sh.Len = dataSize
+	sh.Cap = dataSize
+
+	contentWidth := int(size.X) * 4
+	dataWidth := int(mappedRect.Pitch)
+	
+	var imgStart, dataStart, dataEnd int
+	// copy source bytes into image.RGBA.Pix, skipping padding
+	for i := 0; i < int(size.Y); i++ {
+		imgStart = i * contentWidth
+		dataStart = i * dataWidth
+		dataEnd = dataStart + contentWidth
+		copy(img.Pix[imgStart:], data[dataStart:dataEnd])
+	}
+
 	dup.drawPointer(img)
 	if dup.needsSwizzle {
 		swizzle.BGRA(img.Pix)
