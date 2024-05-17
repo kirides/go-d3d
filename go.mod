@@ -1,16 +1,18 @@
 module github.com/kirides/go-d3d
 
-go 1.19
+go 1.21
+
+toolchain go1.22.2
 
 require (
-	github.com/kbinani/screenshot v0.0.0-20210720154843-7d3a670d8329
+	github.com/kbinani/screenshot v0.0.0-20230812210009-b87d31814237
 	github.com/mattn/go-mjpeg v0.0.3
-	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
-	golang.org/x/sys v0.3.0
+	github.com/viam-labs/go-libjpeg v0.3.1
+	golang.org/x/sys v0.20.0
 )
 
 require (
-	github.com/gen2brain/shm v0.0.0-20221026125803-c33c9e32b1c8 // indirect
-	github.com/jezek/xgb v1.1.0 // indirect
+	github.com/gen2brain/shm v0.1.0 // indirect
+	github.com/jezek/xgb v1.1.1 // indirect
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e // indirect
 )

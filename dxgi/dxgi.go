@@ -43,7 +43,7 @@ func (obj *IDXGIFactory1) Release() int32 {
 	return int32(ret)
 }
 
-func (obj *IDXGIFactory1) EnumAdapters1(adapter uint, pp **IDXGIAdapter1) int32 {
+func (obj *IDXGIFactory1) EnumAdapters1(adapter uint32, pp **IDXGIAdapter1) int32 {
 	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.EnumAdapters1,
 		uintptr(unsafe.Pointer(obj)),
@@ -78,7 +78,7 @@ func (obj *IDXGIAdapter1) Release() int32 {
 	return int32(ret)
 }
 
-func (obj *IDXGIAdapter1) EnumOutputs(output uint, pp **IDXGIOutput) uint32 {
+func (obj *IDXGIAdapter1) EnumOutputs(output uint32, pp **IDXGIOutput) uint32 {
 	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.EnumOutputs,
 		uintptr(unsafe.Pointer(obj)),
@@ -92,7 +92,7 @@ type IDXGIAdapter struct {
 	vtbl *IDXGIAdapterVtbl
 }
 
-func (obj *IDXGIAdapter) EnumOutputs(output uint, pp **IDXGIOutput) uint32 {
+func (obj *IDXGIAdapter) EnumOutputs(output uint32, pp **IDXGIOutput) uint32 {
 	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.EnumOutputs,
 		uintptr(unsafe.Pointer(obj)),
@@ -249,7 +249,16 @@ type IDXGIOutput5 struct {
 
 type DXGI_FORMAT uint32
 
-func (obj *IDXGIOutput5) DuplicateOutput1(device1 *IDXGIDevice1, flags uint, pSupportedFormats []DXGI_FORMAT, ppOutputDuplication **IDXGIOutputDuplication) int32 {
+func (obj *IDXGIOutput5) GetDesc(desc *DXGI_OUTPUT_DESC) int32 {
+	ret, _, _ := syscall.SyscallN(
+		obj.vtbl.GetDesc,
+		uintptr(unsafe.Pointer(obj)),
+		uintptr(unsafe.Pointer(desc)),
+	)
+	return int32(ret)
+}
+
+func (obj *IDXGIOutput5) DuplicateOutput1(device1 *IDXGIDevice1, flags uint32, pSupportedFormats []DXGI_FORMAT, ppOutputDuplication **IDXGIOutputDuplication) int32 {
 	pFormats := &pSupportedFormats[0]
 	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.DuplicateOutput1,
@@ -425,7 +434,7 @@ func (obj *IDXGIOutputDuplication) Release() uint32 {
 	return uint32(ret)
 }
 
-func (obj *IDXGIOutputDuplication) AcquireNextFrame(timeoutMs uint, pFrameInfo *DXGI_OUTDUPL_FRAME_INFO, ppDesktopResource **IDXGIResource) uint32 {
+func (obj *IDXGIOutputDuplication) AcquireNextFrame(timeoutMs uint32, pFrameInfo *DXGI_OUTDUPL_FRAME_INFO, ppDesktopResource **IDXGIResource) uint32 {
 	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.AcquireNextFrame,    // function address
 		uintptr(unsafe.Pointer(obj)), // always pass the COM object address first

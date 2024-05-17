@@ -1,9 +1,12 @@
+//go:build !turbo
+
 package main
 
 import (
 	"image"
-	"image/jpeg"
 	"io"
+
+	"image/jpeg"
 )
 
 func jpegQuality(q int) *jpeg.Options {

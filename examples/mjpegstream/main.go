@@ -19,7 +19,6 @@ import (
 	"github.com/kirides/go-d3d/examples/framelimiter"
 	"github.com/kirides/go-d3d/outputduplication"
 	"github.com/kirides/go-d3d/win"
-	"github.com/nfnt/resize"
 
 	"github.com/kbinani/screenshot"
 	"github.com/mattn/go-mjpeg"
@@ -115,34 +114,15 @@ func streamDisplayDXGI(ctx context.Context, n int, framerate int, out *mjpeg.Str
 	buf := &bufferFlusher{Buffer: bytes.Buffer{}}
 	opts := jpegQuality(50)
 	limiter := framelimiter.New(framerate)
-	// Create image that can contain the wanted output (desktop)
-	finalBounds := screenshot.GetDisplayBounds(n)
-	imgBuf := image.NewRGBA(finalBounds)
-	lastBounds := finalBounds
 
-	if false {
-		// TODO: This is just there, so that people can see how resizing might look
-		_ = resize.Resize(1920, 1080, imgBuf, resize.Bicubic)
-	}
-
+	lastBounds := image.Rectangle{}
+	var imgBuf *image.RGBA
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
 			limiter.Wait()
-		}
-		bounds := screenshot.GetDisplayBounds(n)
-		newBounds := image.Rect(0, 0, int(bounds.Dx()), int(bounds.Dy()))
-		if newBounds != lastBounds {
-			lastBounds = newBounds
-			imgBuf = image.NewRGBA(lastBounds)
-
-			// Throw away old ddup
-			if ddup != nil {
-				ddup.Release()
-				ddup = nil
-			}
 		}
 		// create output duplication if doesn't exist yet (maybe due to resolution change)
 		if ddup == nil {
@@ -151,10 +131,18 @@ func streamDisplayDXGI(ctx context.Context, n int, framerate int, out *mjpeg.Str
 				fmt.Printf("err: %v\n", err)
 				continue
 			}
+			bounds, err := ddup.GetBounds()
+			if err != nil {
+				return
+			}
+			if bounds != lastBounds {
+				lastBounds = bounds
+				imgBuf = image.NewRGBA(lastBounds)
+			}
 		}
 
 		// Grab an image.RGBA from the current output presenter
-		err = ddup.GetImage(imgBuf, 0)
+		err = ddup.GetImage(imgBuf, 999)
 		if err != nil {
 			if errors.Is(err, outputduplication.ErrNoImageYet) {
 				// don't update
