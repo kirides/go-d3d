@@ -23,8 +23,6 @@ func captureScreenTranscode(ctx context.Context, n int, framerate int) {
 		fmt.Printf("Not enough displays\n")
 		return
 	}
-	screenBounds := screenshot.GetDisplayBounds(n)
-	transcoder := newVideotranscoder(fmt.Sprintf("screen_%d.mp4", n), screenBounds.Dx(), screenBounds.Dy(), float32(framerate))
 
 	// Keep this thread, so windows/d3d11/dxgi can use their threadlocal caches, if any
 	runtime.LockOSThread()
@@ -55,6 +53,13 @@ func captureScreenTranscode(ctx context.Context, n int, framerate int) {
 		return
 	}
 	defer ddup.Release()
+
+	screenBounds, err := ddup.GetBounds()
+	if err != nil {
+		fmt.Printf("Unable to obtain output bounds: %v\n", err)
+		return
+	}
+	transcoder := newVideotranscoder(fmt.Sprintf("screen_%d.mp4", n), screenBounds.Dx(), screenBounds.Dy(), float32(framerate))
 
 	limiter := framelimiter.New(framerate)
 
