@@ -6,6 +6,17 @@ type DXGI_RATIONAL struct {
 	Numerator   uint32
 	Denominator uint32
 }
+
+type DXGI_MODE_ROTATION uint32
+
+type DXGI_OUTPUT_DESC struct {
+	DeviceName         [32]uint16
+	DesktopCoordinates RECT
+	AttachedToDesktop  uint32 // BOOL
+	Rotation           DXGI_MODE_ROTATION
+	Monitor            uintptr
+}
+
 type DXGI_MODE_DESC struct {
 	Width            uint32
 	Height           uint32

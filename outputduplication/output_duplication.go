@@ -26,6 +26,7 @@ type OutputDuplicator struct {
 	device            *d3d11.ID3D11Device
 	deviceCtx         *d3d11.ID3D11DeviceContext
 	outputDuplication *dxgi.IDXGIOutputDuplication
+	dxgiOutput        *dxgi.IDXGIOutput5
 
 	stagedTex  *d3d11.ID3D11Texture2D
 	surface    *dxgi.IDXGISurface
@@ -77,6 +78,7 @@ func (dup *OutputDuplicator) initializeStage(texture *d3d11.ID3D11Texture2D) int
 }
 
 func (dup *OutputDuplicator) Release() {
+	dup.ReleaseFrame()
 	if dup.stagedTex != nil {
 		dup.stagedTex.Release()
 		dup.stagedTex = nil
@@ -88,6 +90,10 @@ func (dup *OutputDuplicator) Release() {
 	if dup.outputDuplication != nil {
 		dup.outputDuplication.Release()
 		dup.outputDuplication = nil
+	}
+	if dup.dxgiOutput != nil {
+		dup.dxgiOutput.Release()
+		dup.dxgiOutput = nil
 	}
 }
 
@@ -127,7 +133,7 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 	// TODO: Properly use ReleaseFrame...
 
 	dup.ReleaseFrame()
-	hrF := dup.outputDuplication.AcquireNextFrame(timeoutMs, &frameInfo, &desktop)
+	hrF := dup.outputDuplication.AcquireNextFrame(uint32(timeoutMs), &frameInfo, &desktop)
 	dup.acquiredFrame = true
 	if hr := d3d.HRESULT(hrF); hr.Failed() {
 		if hr == d3d.DXGI_ERROR_WAIT_TIMEOUT {
@@ -137,7 +143,7 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 	}
 	// If we do not release the frame ASAP, we only get FPS / 2 frames :/
 	// Something wrong here?
-	defer dup.ReleaseFrame()
+	// defer dup.ReleaseFrame()
 	defer desktop.Release()
 
 	if dup.DrawPointer {
@@ -399,6 +405,16 @@ func (dup *OutputDuplicator) drawPointer(img *image.RGBA) error {
 	return nil
 }
 
+func (ddup *OutputDuplicator) GetBounds() (image.Rectangle, error) {
+	desc := dxgi.DXGI_OUTPUT_DESC{}
+	hr := ddup.dxgiOutput.GetDesc(&desc)
+	if hr := d3d.HRESULT(hr); hr.Failed() {
+		return image.Rectangle{}, fmt.Errorf("failed at dxgiOutput.GetDesc. %w", hr)
+	}
+
+	return image.Rect(int(desc.DesktopCoordinates.Left), int(desc.DesktopCoordinates.Top), int(desc.DesktopCoordinates.Right), int(desc.DesktopCoordinates.Bottom)), nil
+}
+
 // NewIDXGIOutputDuplication creates a new OutputDuplicator
 func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D11DeviceContext, output uint) (*OutputDuplicator, error) {
 	// DEBUG
@@ -434,7 +450,7 @@ func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D
 
 	var dxgiOutput *dxgi.IDXGIOutput
 	// const DXGI_ERROR_NOT_FOUND = 0x887A0002
-	hr = int32(dxgiAdapter.EnumOutputs(output, &dxgiOutput))
+	hr = int32(dxgiAdapter.EnumOutputs(uint32(output), &dxgiOutput))
 	if hr := d3d.HRESULT(hr); hr.Failed() {
 		return nil, fmt.Errorf("failed at dxgiAdapter.EnumOutputs. %w", hr)
 	}
@@ -445,7 +461,7 @@ func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D
 	if hr := d3d.HRESULT(hr); hr.Failed() {
 		return nil, fmt.Errorf("failed at dxgiOutput.QueryInterface. %w", hr)
 	}
-	defer dxgiOutput5.Release()
+
 	var dup *dxgi.IDXGIOutputDuplication
 	hr = dxgiOutput5.DuplicateOutput1(dxgiDevice1, 0, []dxgi.DXGI_FORMAT{
 		dxgi.DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -460,14 +476,16 @@ func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D
 		var dxgiOutput1 *dxgi.IDXGIOutput1
 		hr := dxgiOutput.QueryInterface(dxgi.IID_IDXGIOutput1, &dxgiOutput1)
 		if hr := d3d.HRESULT(hr); hr.Failed() {
+			dxgiOutput5.Release()
 			return nil, fmt.Errorf("failed at dxgiOutput.QueryInterface. %w", hr)
 		}
 		defer dxgiOutput1.Release()
 		hr = dxgiOutput1.DuplicateOutput(dxgiDevice1, &dup)
 		if hr := d3d.HRESULT(hr); hr.Failed() {
+			dxgiOutput5.Release()
 			return nil, fmt.Errorf("failed at dxgiOutput1.DuplicateOutput. %w", hr)
 		}
 	}
 
-	return &OutputDuplicator{device: device, deviceCtx: deviceCtx, outputDuplication: dup, needsSwizzle: needsSwizzle}, nil
+	return &OutputDuplicator{device: device, deviceCtx: deviceCtx, outputDuplication: dup, needsSwizzle: needsSwizzle, dxgiOutput: dxgiOutput5}, nil
 }
