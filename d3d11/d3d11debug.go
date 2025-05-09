@@ -1,6 +1,7 @@
 package d3d11
 
 import (
+	"structs"
 	"syscall"
 	"unsafe"
 
@@ -9,6 +10,7 @@ import (
 )
 
 type ID3D11Debug struct {
+	_    structs.HostLayout
 	vtbl *ID3D11DebugVtbl
 }
 
@@ -37,6 +39,7 @@ func (obj *ID3D11Debug) Release() int32 {
 }
 
 type ID3D11InfoQueue struct {
+	_    structs.HostLayout
 	vtbl *ID3D11InfoQueueVtbl
 }
 

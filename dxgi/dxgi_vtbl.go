@@ -1,10 +1,13 @@
 package dxgi
 
 import (
+	"structs"
+
 	"github.com/kirides/go-d3d/com"
 )
 
 type IDXGIObjectVtbl struct {
+	_ structs.HostLayout
 	com.IUnknownVtbl
 
 	SetPrivateData          uintptr
@@ -14,6 +17,7 @@ type IDXGIObjectVtbl struct {
 }
 
 type IDXGIAdapterVtbl struct {
+	_ structs.HostLayout
 	IDXGIObjectVtbl
 
 	EnumOutputs           uintptr
@@ -21,12 +25,14 @@ type IDXGIAdapterVtbl struct {
 	CheckInterfaceSupport uintptr
 }
 type IDXGIAdapter1Vtbl struct {
+	_ structs.HostLayout
 	IDXGIAdapterVtbl
 
 	GetDesc1 uintptr
 }
 
 type IDXGIDeviceVtbl struct {
+	_ structs.HostLayout
 	IDXGIObjectVtbl
 
 	CreateSurface          uintptr
@@ -37,6 +43,7 @@ type IDXGIDeviceVtbl struct {
 }
 
 type IDXGIDevice1Vtbl struct {
+	_ structs.HostLayout
 	IDXGIDeviceVtbl
 
 	GetMaximumFrameLatency uintptr
@@ -44,12 +51,14 @@ type IDXGIDevice1Vtbl struct {
 }
 
 type IDXGIDeviceSubObjectVtbl struct {
+	_ structs.HostLayout
 	IDXGIObjectVtbl
 
 	GetDevice uintptr
 }
 
 type IDXGISurfaceVtbl struct {
+	_ structs.HostLayout
 	IDXGIDeviceSubObjectVtbl
 
 	GetDesc uintptr
@@ -58,6 +67,7 @@ type IDXGISurfaceVtbl struct {
 }
 
 type IDXGIResourceVtbl struct {
+	_ structs.HostLayout
 	IDXGIDeviceSubObjectVtbl
 
 	GetSharedHandle     uintptr
@@ -67,6 +77,7 @@ type IDXGIResourceVtbl struct {
 }
 
 type IDXGIOutputVtbl struct {
+	_ structs.HostLayout
 	IDXGIObjectVtbl
 
 	GetDesc                     uintptr
@@ -84,6 +95,7 @@ type IDXGIOutputVtbl struct {
 }
 
 type IDXGIOutput1Vtbl struct {
+	_ structs.HostLayout
 	IDXGIOutputVtbl
 
 	GetDisplayModeList1      uintptr
@@ -93,29 +105,34 @@ type IDXGIOutput1Vtbl struct {
 }
 
 type IDXGIOutput2Vtbl struct {
+	_ structs.HostLayout
 	IDXGIOutput1Vtbl
 
 	SupportsOverlays uintptr
 }
 
 type IDXGIOutput3Vtbl struct {
+	_ structs.HostLayout
 	IDXGIOutput2Vtbl
 
 	CheckOverlaySupport uintptr
 }
 
 type IDXGIOutput4Vtbl struct {
+	_ structs.HostLayout
 	IDXGIOutput3Vtbl
 
 	CheckOverlayColorSpaceSupport uintptr
 }
 type IDXGIOutput5Vtbl struct {
+	_ structs.HostLayout
 	IDXGIOutput4Vtbl
 
 	DuplicateOutput1 uintptr
 }
 
 type IDXGIOutputDuplicationVtbl struct {
+	_ structs.HostLayout
 	IDXGIObjectVtbl
 
 	GetDesc              uintptr
@@ -128,6 +145,7 @@ type IDXGIOutputDuplicationVtbl struct {
 	ReleaseFrame         uintptr
 }
 type IDXGIFactoryVtbl struct {
+	_ structs.HostLayout
 	IDXGIObjectVtbl
 
 	EnumAdapters          uintptr
@@ -137,6 +155,7 @@ type IDXGIFactoryVtbl struct {
 	CreateSoftwareAdapter uintptr
 }
 type IDXGIFactory1Vtbl struct {
+	_ structs.HostLayout
 	IDXGIFactoryVtbl
 
 	EnumAdapters1 uintptr

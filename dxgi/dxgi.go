@@ -1,6 +1,7 @@
 package dxgi
 
 import (
+	"structs"
 	"syscall"
 	"unsafe"
 
@@ -32,6 +33,7 @@ const (
 )
 
 type IDXGIFactory1 struct {
+	_    structs.HostLayout
 	vtbl *IDXGIFactory1Vtbl
 }
 
@@ -67,6 +69,7 @@ func CreateDXGIFactory1(ppFactory **IDXGIFactory1) error {
 }
 
 type IDXGIAdapter1 struct {
+	_    structs.HostLayout
 	vtbl *IDXGIAdapter1Vtbl
 }
 
@@ -89,6 +92,7 @@ func (obj *IDXGIAdapter1) EnumOutputs(output uint32, pp **IDXGIOutput) uint32 {
 }
 
 type IDXGIAdapter struct {
+	_    structs.HostLayout
 	vtbl *IDXGIAdapterVtbl
 }
 
@@ -111,6 +115,7 @@ func (obj *IDXGIAdapter) Release() int32 {
 }
 
 type IDXGIDevice struct {
+	_    structs.HostLayout
 	vtbl *IDXGIDeviceVtbl
 }
 
@@ -151,6 +156,7 @@ func (obj *IDXGIDevice) Release() int32 {
 }
 
 type IDXGIDevice1 struct {
+	_    structs.HostLayout
 	vtbl *IDXGIDevice1Vtbl
 }
 
@@ -186,6 +192,7 @@ func (obj *IDXGIDevice1) Release() int32 {
 }
 
 type IDXGIOutput struct {
+	_    structs.HostLayout
 	vtbl *IDXGIOutputVtbl
 }
 
@@ -212,6 +219,7 @@ func (obj *IDXGIOutput) Release() int32 {
 }
 
 type IDXGIOutput1 struct {
+	_    structs.HostLayout
 	vtbl *IDXGIOutput1Vtbl
 }
 
@@ -244,6 +252,7 @@ func (obj *IDXGIOutput1) Release() int32 {
 }
 
 type IDXGIOutput5 struct {
+	_    structs.HostLayout
 	vtbl *IDXGIOutput5Vtbl
 }
 
@@ -291,6 +300,7 @@ func (obj *IDXGIOutput5) Release() int32 {
 }
 
 type IDXGIResource struct {
+	_    structs.HostLayout
 	vtbl *IDXGIResourceVtbl
 }
 
@@ -306,6 +316,7 @@ func (obj *IDXGIResource) Release() int32 {
 }
 
 type IDXGISurface struct {
+	_    structs.HostLayout
 	vtbl *IDXGISurfaceVtbl
 }
 
@@ -337,6 +348,7 @@ func (obj *IDXGISurface) Release() int32 {
 }
 
 type IDXGIOutputDuplication struct {
+	_    structs.HostLayout
 	vtbl *IDXGIOutputDuplicationVtbl
 }
 

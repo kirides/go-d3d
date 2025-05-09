@@ -1,8 +1,12 @@
 package dxgi
 
+import "structs"
+
 //go:generate stringer -type=_DXGI_OUTDUPL_POINTER_SHAPE_TYPE -output=dxgi_types_string.go
 
 type DXGI_RATIONAL struct {
+	_ structs.HostLayout
+
 	Numerator   uint32
 	Denominator uint32
 }
@@ -10,6 +14,8 @@ type DXGI_RATIONAL struct {
 type DXGI_MODE_ROTATION uint32
 
 type DXGI_OUTPUT_DESC struct {
+	_ structs.HostLayout
+
 	DeviceName         [32]uint16
 	DesktopCoordinates RECT
 	AttachedToDesktop  uint32 // BOOL
@@ -18,6 +24,8 @@ type DXGI_OUTPUT_DESC struct {
 }
 
 type DXGI_MODE_DESC struct {
+	_ structs.HostLayout
+
 	Width            uint32
 	Height           uint32
 	Rational         DXGI_RATIONAL
@@ -27,33 +35,47 @@ type DXGI_MODE_DESC struct {
 }
 
 type DXGI_OUTDUPL_DESC struct {
+	_ structs.HostLayout
+
 	ModeDesc                   DXGI_MODE_DESC
 	Rotation                   uint32 // DXGI_MODE_ROTATION
 	DesktopImageInSystemMemory uint32 // BOOL
 }
 
 type DXGI_SAMPLE_DESC struct {
+	_ structs.HostLayout
+
 	Count   uint32
 	Quality uint32
 }
 
 type POINT struct {
+	_ structs.HostLayout
+
 	X int32
 	Y int32
 }
 type RECT struct {
+	_ structs.HostLayout
+
 	Left, Top, Right, Bottom int32
 }
 
 type DXGI_OUTDUPL_MOVE_RECT struct {
+	_ structs.HostLayout
+
 	Src  POINT
 	Dest RECT
 }
 type DXGI_OUTDUPL_POINTER_POSITION struct {
+	_ structs.HostLayout
+
 	Position POINT
 	Visible  uint32
 }
 type DXGI_OUTDUPL_FRAME_INFO struct {
+	_ structs.HostLayout
+
 	LastPresentTime           int64
 	LastMouseUpdateTime       int64
 	AccumulatedFrames         uint32
@@ -64,6 +86,8 @@ type DXGI_OUTDUPL_FRAME_INFO struct {
 	PointerShapeBufferSize    uint32
 }
 type DXGI_MAPPED_RECT struct {
+	_ structs.HostLayout
+
 	Pitch int32
 	PBits uintptr
 }
@@ -82,6 +106,8 @@ const (
 )
 
 type DXGI_OUTDUPL_POINTER_SHAPE_INFO struct {
+	_ structs.HostLayout
+
 	Type    DXGI_OUTDUPL_POINTER_SHAPE_TYPE
 	Width   uint32
 	Height  uint32
