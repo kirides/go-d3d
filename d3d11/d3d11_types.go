@@ -1,12 +1,20 @@
 package d3d11
 
-import "github.com/kirides/go-d3d/dxgi"
+import (
+	"structs"
+
+	"github.com/kirides/go-d3d/dxgi"
+)
 
 type D3D11_BOX struct {
+	_ structs.HostLayout
+
 	Left, Top, Front, Right, Bottom, Back uint32
 }
 
 type D3D11_TEXTURE2D_DESC struct {
+	_ structs.HostLayout
+
 	Width          uint32
 	Height         uint32
 	MipLevels      uint32

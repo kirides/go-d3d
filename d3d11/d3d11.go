@@ -2,6 +2,7 @@ package d3d11
 
 import (
 	"fmt"
+	"structs"
 	"syscall"
 	"unsafe"
 
@@ -102,6 +103,7 @@ func NewD3D11Device() (*ID3D11Device, *ID3D11DeviceContext, error) {
 }
 
 type ID3D11Texture2D struct {
+	_    structs.HostLayout
 	vtbl *ID3D11Texture2DVtbl
 }
 
@@ -125,6 +127,7 @@ func (obj *ID3D11Texture2D) QueryInterface(iid windows.GUID, pp interface{}) int
 }
 
 type ID3D11Device struct {
+	_    structs.HostLayout
 	vtbl *ID3D11DeviceVtbl
 }
 
@@ -152,6 +155,7 @@ func (obj *ID3D11Device) Release() int32 {
 }
 
 type ID3D11Device1 struct {
+	_    structs.HostLayout
 	vtbl *ID3D11DeviceVtbl
 }
 
@@ -175,6 +179,7 @@ func (obj *ID3D11Device1) CreateTexture2D(desc *D3D11_TEXTURE2D_DESC, ppTexture2
 }
 
 type ID3D11DeviceContext struct {
+	_    structs.HostLayout
 	vtbl *ID3D11DeviceContextVtbl
 }
 
@@ -236,6 +241,7 @@ func (obj *ID3D11DeviceContext) Release() int32 {
 }
 
 type ID3D11Resource struct {
+	_    structs.HostLayout
 	vtbl *ID3D11ResourceVtbl
 }
 

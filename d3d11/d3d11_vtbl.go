@@ -1,10 +1,14 @@
 package d3d11
 
 import (
+	"structs"
+
 	"github.com/kirides/go-d3d/com"
 )
 
 type ID3D11DeviceChildVtbl struct {
+	_ structs.HostLayout
+
 	com.IUnknownVtbl
 
 	GetDevice               uintptr
@@ -14,6 +18,7 @@ type ID3D11DeviceChildVtbl struct {
 }
 
 type ID3D11DeviceContextVtbl struct {
+	_ structs.HostLayout
 	ID3D11DeviceChildVtbl
 
 	VSSetConstantBuffers                      uintptr
@@ -62,6 +67,7 @@ type ID3D11DeviceContextVtbl struct {
 }
 
 type ID3D11DeviceVtbl struct {
+	_ structs.HostLayout
 	com.IUnknownVtbl
 
 	CreateBuffer                         uintptr
@@ -107,6 +113,7 @@ type ID3D11DeviceVtbl struct {
 }
 
 type ID3D11DebugVtbl struct {
+	_ structs.HostLayout
 	com.IUnknownVtbl
 
 	SetFeatureMask             uintptr
@@ -121,6 +128,7 @@ type ID3D11DebugVtbl struct {
 }
 
 type ID3D11InfoQueueVtbl struct {
+	_ structs.HostLayout
 	com.IUnknownVtbl
 
 	AddApplicationMessage                        uintptr
@@ -160,6 +168,7 @@ type ID3D11InfoQueueVtbl struct {
 	SetMuteDebugOutput                           uintptr
 }
 type ID3D11ResourceVtbl struct {
+	_ structs.HostLayout
 	ID3D11DeviceChildVtbl
 
 	GetType             uintptr
@@ -168,6 +177,7 @@ type ID3D11ResourceVtbl struct {
 }
 
 type ID3D11Texture2DVtbl struct {
+	_ structs.HostLayout
 	ID3D11ResourceVtbl
 
 	GetDesc uintptr

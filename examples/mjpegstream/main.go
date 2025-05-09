@@ -82,6 +82,7 @@ func streamDisplayDXGI(ctx context.Context, n int, framerate int, out *mjpeg.Str
 
 	// Keep this thread, so windows/d3d11/dxgi can use their threadlocal caches, if any
 	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
 
 	// Make thread PerMonitorV2 Dpi aware if supported on OS
 	// allows to let windows handle BGRA -> RGBA conversion and possibly more things
@@ -117,6 +118,9 @@ func streamDisplayDXGI(ctx context.Context, n int, framerate int, out *mjpeg.Str
 
 	lastBounds := image.Rectangle{}
 	var imgBuf *image.RGBA
+	var lastFrameWithoutCursor *image.RGBA
+
+	drawCursor := true
 	for {
 		select {
 		case <-ctx.Done():
@@ -131,6 +135,7 @@ func streamDisplayDXGI(ctx context.Context, n int, framerate int, out *mjpeg.Str
 				fmt.Printf("err: %v\n", err)
 				continue
 			}
+			ddup.UpdatePointerInfo = drawCursor
 			bounds, err := ddup.GetBounds()
 			if err != nil {
 				return
@@ -138,22 +143,31 @@ func streamDisplayDXGI(ctx context.Context, n int, framerate int, out *mjpeg.Str
 			if bounds != lastBounds {
 				lastBounds = bounds
 				imgBuf = image.NewRGBA(lastBounds)
+				lastFrameWithoutCursor = image.NewRGBA(lastBounds)
 			}
 		}
 
 		// Grab an image.RGBA from the current output presenter
-		err = ddup.GetImage(imgBuf, 999)
+		currentImage := imgBuf
+		err = ddup.GetImage(currentImage, 999)
 		if err != nil {
 			if errors.Is(err, outputduplication.ErrNoImageYet) {
 				// don't update
+				copy(imgBuf.Pix, lastFrameWithoutCursor.Pix)
+			} else {
+				fmt.Printf("Err ddup.GetImage: %v\n", err)
+				// Retry with new ddup, can occur when changing resolution
+				ddup.Release()
+				ddup = nil
 				continue
 			}
-			fmt.Printf("Err ddup.GetImage: %v\n", err)
-			// Retry with new ddup, can occur when changing resolution
-			ddup.Release()
-			ddup = nil
-			continue
+		} else {
+			copy(lastFrameWithoutCursor.Pix, imgBuf.Pix)
 		}
+		if drawCursor {
+			ddup.DrawCursor(currentImage)
+		}
+
 		buf.Reset()
 		encodeJpeg(buf, imgBuf, opts)
 		out.Update(buf.Bytes())
