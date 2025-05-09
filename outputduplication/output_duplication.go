@@ -34,7 +34,10 @@ type OutputDuplicator struct {
 	size       dxgi.POINT
 
 	pointerInfo PointerInfo
+	// Always draw pointer onto the final image when calling GetImage
 	DrawPointer bool
+	// Update pointer information when it changes, used with DrawCursor(image)
+	UpdatePointerInfo bool
 
 	// TODO: handle DPI? Do we need it?
 	dirtyRects    []dxgi.RECT
@@ -146,7 +149,7 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 	// defer dup.ReleaseFrame()
 	defer desktop.Release()
 
-	if dup.DrawPointer {
+	if dup.UpdatePointerInfo {
 		if err := dup.updatePointer(&frameInfo); err != nil {
 			return nil, nil, nil, err
 		}
@@ -238,6 +241,10 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 	return dup.surface.Unmap, &dup.mappedRect, &dup.size, nil
 }
 
+func (dup *OutputDuplicator) DrawCursor(img *image.RGBA) error {
+	return dup.drawPointer(img)
+}
+
 func (dup *OutputDuplicator) GetImage(img *image.RGBA, timeoutMs uint) error {
 	unmap, mappedRect, size, err := dup.Snapshot(timeoutMs)
 	if err != nil {
@@ -261,9 +268,12 @@ func (dup *OutputDuplicator) GetImage(img *image.RGBA, timeoutMs uint) error {
 		dataStart += dataWidth
 	}
 
-	dup.drawPointer(img)
 	if dup.needsSwizzle {
 		swizzle.BGRA(img.Pix)
+	}
+
+	if dup.DrawPointer {
+		dup.drawPointer(img)
 	}
 
 	return nil
@@ -292,7 +302,7 @@ func (dup *OutputDuplicator) updatePointer(info *dxgi.DXGI_OUTDUPL_FRAME_INFO) e
 		if hr != 0 {
 			return fmt.Errorf("unable to obtain frame pointer shape")
 		}
-		neededSize := pointerInfo.Width * pointerInfo.Height * 4
+		neededSize := int(pointerInfo.Width) * int(pointerInfo.Height/2) * 4
 		dup.pointerInfo.shapeOutBuffer = image.NewRGBA(image.Rect(0, 0, int(pointerInfo.Width), int(pointerInfo.Height)))
 		if len(dup.pointerInfo.shapeOutBuffer.Pix) < int(neededSize) {
 			dup.pointerInfo.shapeOutBuffer.Pix = make([]byte, neededSize)
@@ -300,63 +310,49 @@ func (dup *OutputDuplicator) updatePointer(info *dxgi.DXGI_OUTDUPL_FRAME_INFO) e
 
 		switch pointerInfo.Type {
 		case dxgi.DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME:
-			dup.pointerInfo.size = dxgi.POINT{X: int32(pointerInfo.Width), Y: int32(pointerInfo.Height)}
+			width := int(pointerInfo.Width)
+			height := int(pointerInfo.Height) / 2 // Corrected height!
 
-			xor_offset := pointerInfo.Pitch * (pointerInfo.Height / 2)
+			dup.pointerInfo.size = dxgi.POINT{X: int32(width), Y: int32(height)}
+
+			xor_offset := pointerInfo.Pitch * uint32(height)
 			andMap := dup.pointerInfo.shapeInBuffer
-			xorMap := dup.pointerInfo.shapeInBuffer[:xor_offset]
+			xorMap := dup.pointerInfo.shapeInBuffer[xor_offset:]
 			out_pixels := dup.pointerInfo.shapeOutBuffer.Pix
-			widthBytes := (pointerInfo.Width + 7) / 8
+			widthBytes := (width + 7) / 8
 
-			imgHeight := pointerInfo.Height / 2
+			for j := 0; j < height; j++ {
+				for i := 0; i < width; i++ {
+					byteIndex := j*widthBytes + i/8
+					bitMask := byte(0x80 >> (i % 8))
 
-			for j := 0; j < int(imgHeight); j++ {
-				bit := byte(0x80)
+					andBit := (andMap[byteIndex] & bitMask) != 0
+					xorBit := (xorMap[byteIndex] & bitMask) != 0
 
-				for i := 0; i < int(pointerInfo.Width); i++ {
-					andByte := andMap[j*int(widthBytes)+i/8]
-					xorByte := xorMap[j*int(widthBytes)+i/8]
-					andBit := 0
-					if (andByte & bit) != 0 {
-						andBit = 1
-					}
-					xorBit := 0
-					if (xorByte & bit) != 0 {
-						xorBit = 1
-					}
-					outDx := j*int(pointerInfo.Width)*4 + i*4
-					if andBit == 0 {
-						if xorBit == 0 {
-							out_pixels[outDx+0] = 0x00
-							out_pixels[outDx+1] = 0x00
-							out_pixels[outDx+2] = 0x00
-							out_pixels[outDx+3] = 0x00
-						} else {
-							out_pixels[outDx+0] = 0xFF
-							out_pixels[outDx+1] = 0xFF
-							out_pixels[outDx+2] = 0xFF
-							out_pixels[outDx+3] = 0xFF
-						}
-					} else {
-						if xorBit == 0 {
-							out_pixels[outDx+0] = 0x00
-							out_pixels[outDx+1] = 0x00
-							out_pixels[outDx+2] = 0x00
-							out_pixels[outDx+3] = 0x00
-						} else {
-							out_pixels[outDx+0] = 0x00
-							out_pixels[outDx+1] = 0x00
-							out_pixels[outDx+2] = 0x00
-							out_pixels[outDx+3] = 0xFF
-						}
-					}
-					if bit == 0x01 {
-						bit = 0x80
-					} else {
-						bit = bit >> 1
+					outIndex := (j*width + i) * 4
+					// var r, g, b, a byte
+
+					switch {
+					case !andBit && !xorBit: // Transparent
+						// 	r, g, b, a = 0, 0, 0, 0
+						*(*uint32)(unsafe.Pointer(&out_pixels[outIndex])) = 0x00000000
+					case !andBit && xorBit: // Inverted (white)
+						// r, g, b, a = 255, 255, 255, 255
+						*(*uint32)(unsafe.Pointer(&out_pixels[outIndex])) = 0xFFFFFFFF
+					case andBit && !xorBit: // Black
+						// 	r, g, b, a = 0, 0, 0, 255 // causes a black plane to be rendered alongside the cursors image
+						// out_pixels[outIndex+0] = 0   // r
+						// out_pixels[outIndex+1] = 0   // g
+						// out_pixels[outIndex+2] = 0   // b
+						// out_pixels[outIndex+3] = 255 // a
+						*(*uint32)(unsafe.Pointer(&out_pixels[outIndex])) = 0x00000000
+					case andBit && xorBit: // Inverted (black)
+						// r, g, b, a = 255, 255, 255, 255
+						*(*uint32)(unsafe.Pointer(&out_pixels[outIndex])) = 0xFFFFFFFF
 					}
 				}
 			}
+
 		case dxgi.DXGI_OUTDUPL_POINTER_SHAPE_TYPE_COLOR:
 			dup.pointerInfo.size = dxgi.POINT{X: int32(pointerInfo.Width), Y: int32(pointerInfo.Height)}
 
@@ -385,10 +381,6 @@ func (dup *OutputDuplicator) updatePointer(info *dxgi.DXGI_OUTDUPL_FRAME_INFO) e
 }
 
 func (dup *OutputDuplicator) drawPointer(img *image.RGBA) error {
-	if !dup.DrawPointer {
-		return nil
-	}
-
 	for j := 0; j < int(dup.pointerInfo.size.Y); j++ {
 		for i := 0; i < int(dup.pointerInfo.size.X); i++ {
 			col := dup.pointerInfo.shapeOutBuffer.At(i, j)
