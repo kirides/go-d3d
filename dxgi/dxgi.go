@@ -91,6 +91,15 @@ func (obj *IDXGIAdapter1) EnumOutputs(output uint32, pp **IDXGIOutput) uint32 {
 	return uint32(ret)
 }
 
+func (obj *IDXGIAdapter1) GetDesc1(p *DXGI_ADAPTER_DESC1) uint32 {
+	ret, _, _ := syscall.SyscallN(
+		obj.vtbl.GetDesc1,
+		uintptr(unsafe.Pointer(obj)),
+		uintptr(unsafe.Pointer(p)),
+	)
+	return uint32(ret)
+}
+
 type IDXGIAdapter struct {
 	_    structs.HostLayout
 	vtbl *IDXGIAdapterVtbl

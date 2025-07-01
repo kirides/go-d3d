@@ -1,8 +1,16 @@
 package dxgi
 
-import "structs"
+import (
+	"structs"
+	"unicode/utf16"
+)
 
 //go:generate stringer -type=_DXGI_OUTDUPL_POINTER_SHAPE_TYPE -output=dxgi_types_string.go
+
+type UINT = uint32
+type SIZE_T = uintptr
+type ULONG = uint32
+type LONG = int32
 
 type DXGI_RATIONAL struct {
 	_ structs.HostLayout
@@ -113,4 +121,38 @@ type DXGI_OUTDUPL_POINTER_SHAPE_INFO struct {
 	Height  uint32
 	Pitch   uint32
 	HotSpot POINT
+}
+
+type LUID struct {
+	_ structs.HostLayout
+
+	LowPart  ULONG
+	HighPart LONG
+}
+type DXGI_ADAPTER_DESC1 struct {
+	_ structs.HostLayout
+
+	Description           [128]uint16
+	VendorId              UINT
+	DeviceId              UINT
+	SubSysId              UINT
+	Revision              UINT
+	DedicatedVideoMemory  SIZE_T
+	DedicatedSystemMemory SIZE_T
+	SharedSystemMemory    SIZE_T
+	AdapterLuid           LUID
+	Flags                 UINT
+}
+
+func (d *DXGI_ADAPTER_DESC1) DescriptionString() string {
+	i := 0
+	for ; i < len(d.Description); i++ {
+		if d.Description[i] == 0 {
+			break
+		}
+	}
+	if i > 0 {
+		return string(utf16.Decode(d.Description[:i]))
+	}
+	return string(utf16.Decode(d.Description[:]))
 }
