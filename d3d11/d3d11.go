@@ -24,9 +24,6 @@ var (
 )
 
 const (
-	D3D11_USAGE_DEFAULT = 0
-	D3D11_USAGE_STAGING = 3
-
 	D3D11_CPU_ACCESS_READ = 0x20000
 
 	D3D11_RLDO_SUMMARY         = 0x1
@@ -37,10 +34,6 @@ const (
 	D3D11_CREATE_DEVICE_BGRA_SUPPORT = 0x20
 
 	D3D11_SDK_VERSION = 7
-
-	DXGI_ADAPTER_FLAG_NONE     uint32 = 0
-	DXGI_ADAPTER_FLAG_REMOTE   uint32 = 1
-	DXGI_ADAPTER_FLAG_SOFTWARE uint32 = 2
 )
 
 func _D3D11CreateDevice(ppDevice **ID3D11Device, ppDeviceContext **ID3D11DeviceContext) error {
@@ -68,7 +61,7 @@ func _D3D11CreateDevice(ppDevice **ID3D11Device, ppDeviceContext **ID3D11DeviceC
 			continue
 		}
 
-		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0 {
+		if (desc.Flags & dxgi.DXGI_ADAPTER_FLAG_SOFTWARE) == 0 {
 			break
 		}
 		adapter1.Release()

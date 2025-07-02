@@ -132,9 +132,6 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 	var desktop *dxgi.IDXGIResource
 	var frameInfo dxgi.DXGI_OUTDUPL_FRAME_INFO
 
-	// Release a possible previous frame
-	// TODO: Properly use ReleaseFrame...
-
 	dup.ReleaseFrame()
 	hrF := dup.outputDuplication.AcquireNextFrame(uint32(timeoutMs), &frameInfo, &desktop)
 	dup.acquiredFrame = true
@@ -144,9 +141,8 @@ func (dup *OutputDuplicator) Snapshot(timeoutMs uint) (unmapFn, *dxgi.DXGI_MAPPE
 		}
 		return nil, nil, nil, fmt.Errorf("failed to AcquireNextFrame. %w", d3d.HRESULT(hrF))
 	}
-	// If we do not release the frame ASAP, we only get FPS / 2 frames :/
-	// Something wrong here?
-	// defer dup.ReleaseFrame()
+
+	defer dup.ReleaseFrame()
 	defer desktop.Release()
 
 	if dup.UpdatePointerInfo {
@@ -254,7 +250,7 @@ func (dup *OutputDuplicator) GetImage(img *image.RGBA, timeoutMs uint) error {
 
 	// docs are unclear, but pitch is the total width of each row
 	dataSize := int(mappedRect.Pitch) * int(size.Y)
-	data := unsafe.Slice((*byte)(unsafe.Pointer(mappedRect.PBits)), dataSize)
+	data := unsafe.Slice((*byte)(mappedRect.PBits), dataSize)
 
 	contentWidth := int(size.X) * 4
 	dataWidth := int(mappedRect.Pitch)
@@ -407,8 +403,7 @@ func (ddup *OutputDuplicator) GetBounds() (image.Rectangle, error) {
 	return image.Rect(int(desc.DesktopCoordinates.Left), int(desc.DesktopCoordinates.Top), int(desc.DesktopCoordinates.Right), int(desc.DesktopCoordinates.Bottom)), nil
 }
 
-// NewIDXGIOutputDuplication creates a new OutputDuplicator
-func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D11DeviceContext, output uint) (*OutputDuplicator, error) {
+func newIDXGIOutputDuplicationFormat(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D11DeviceContext, output uint, format dxgi.DXGI_FORMAT) (*OutputDuplicator, error) {
 	// DEBUG
 
 	var d3dDebug *d3d11.ID3D11Debug
@@ -456,9 +451,7 @@ func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D
 
 	var dup *dxgi.IDXGIOutputDuplication
 	hr = dxgiOutput5.DuplicateOutput1(dxgiDevice1, 0, []dxgi.DXGI_FORMAT{
-		dxgi.DXGI_FORMAT_R8G8B8A8_UNORM,
-		// using the former, we don't have to swizzle ourselves
-		// DXGI_FORMAT_B8G8R8A8_UNORM,
+		format,
 	}, &dup)
 	needsSwizzle := false
 	if hr := d3d.HRESULT(hr); hr.Failed() {
@@ -480,4 +473,9 @@ func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D
 	}
 
 	return &OutputDuplicator{device: device, deviceCtx: deviceCtx, outputDuplication: dup, needsSwizzle: needsSwizzle, dxgiOutput: dxgiOutput5}, nil
+}
+
+// NewIDXGIOutputDuplication creates a new OutputDuplicator
+func NewIDXGIOutputDuplication(device *d3d11.ID3D11Device, deviceCtx *d3d11.ID3D11DeviceContext, output uint) (*OutputDuplicator, error) {
+	return newIDXGIOutputDuplicationFormat(device, deviceCtx, output, dxgi.DXGI_FORMAT_R8G8B8A8_UNORM)
 }

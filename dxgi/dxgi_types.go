@@ -3,9 +3,10 @@ package dxgi
 import (
 	"structs"
 	"unicode/utf16"
+	"unsafe"
 )
 
-//go:generate stringer -type=_DXGI_OUTDUPL_POINTER_SHAPE_TYPE -output=dxgi_types_string.go
+//go:generate stringer -type=DXGI_OUTDUPL_POINTER_SHAPE_TYPE,DXGI_ADAPTER_FLAG -output=dxgi_types_string.go
 
 type UINT = uint32
 type SIZE_T = uintptr
@@ -97,13 +98,8 @@ type DXGI_MAPPED_RECT struct {
 	_ structs.HostLayout
 
 	Pitch int32
-	PBits uintptr
+	PBits unsafe.Pointer
 }
-
-const (
-	DXGI_FORMAT_R8G8B8A8_UNORM DXGI_FORMAT = 28
-	DXGI_FORMAT_B8G8R8A8_UNORM DXGI_FORMAT = 87
-)
 
 type DXGI_OUTDUPL_POINTER_SHAPE_TYPE uint32
 
@@ -129,6 +125,15 @@ type LUID struct {
 	LowPart  ULONG
 	HighPart LONG
 }
+
+type DXGI_ADAPTER_FLAG uint32
+
+const (
+	DXGI_ADAPTER_FLAG_NONE     DXGI_ADAPTER_FLAG = 0
+	DXGI_ADAPTER_FLAG_REMOTE   DXGI_ADAPTER_FLAG = 1
+	DXGI_ADAPTER_FLAG_SOFTWARE DXGI_ADAPTER_FLAG = 2
+)
+
 type DXGI_ADAPTER_DESC1 struct {
 	_ structs.HostLayout
 
@@ -141,7 +146,7 @@ type DXGI_ADAPTER_DESC1 struct {
 	DedicatedSystemMemory SIZE_T
 	SharedSystemMemory    SIZE_T
 	AdapterLuid           LUID
-	Flags                 UINT
+	Flags                 DXGI_ADAPTER_FLAG
 }
 
 func (d *DXGI_ADAPTER_DESC1) DescriptionString() string {

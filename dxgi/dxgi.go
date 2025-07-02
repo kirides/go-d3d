@@ -265,8 +265,6 @@ type IDXGIOutput5 struct {
 	vtbl *IDXGIOutput5Vtbl
 }
 
-type DXGI_FORMAT uint32
-
 func (obj *IDXGIOutput5) GetDesc(desc *DXGI_OUTPUT_DESC) int32 {
 	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.GetDesc,
