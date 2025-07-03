@@ -1,8 +1,17 @@
 package dxgi
 
-import "structs"
+import (
+	"structs"
+	"unicode/utf16"
+	"unsafe"
+)
 
-//go:generate stringer -type=_DXGI_OUTDUPL_POINTER_SHAPE_TYPE -output=dxgi_types_string.go
+//go:generate stringer -type=DXGI_OUTDUPL_POINTER_SHAPE_TYPE,DXGI_ADAPTER_FLAG -output=dxgi_types_string.go
+
+type UINT = uint32
+type SIZE_T = uintptr
+type ULONG = uint32
+type LONG = int32
 
 type DXGI_RATIONAL struct {
 	_ structs.HostLayout
@@ -89,13 +98,8 @@ type DXGI_MAPPED_RECT struct {
 	_ structs.HostLayout
 
 	Pitch int32
-	PBits uintptr
+	PBits unsafe.Pointer
 }
-
-const (
-	DXGI_FORMAT_R8G8B8A8_UNORM DXGI_FORMAT = 28
-	DXGI_FORMAT_B8G8R8A8_UNORM DXGI_FORMAT = 87
-)
 
 type DXGI_OUTDUPL_POINTER_SHAPE_TYPE uint32
 
@@ -113,4 +117,47 @@ type DXGI_OUTDUPL_POINTER_SHAPE_INFO struct {
 	Height  uint32
 	Pitch   uint32
 	HotSpot POINT
+}
+
+type LUID struct {
+	_ structs.HostLayout
+
+	LowPart  ULONG
+	HighPart LONG
+}
+
+type DXGI_ADAPTER_FLAG uint32
+
+const (
+	DXGI_ADAPTER_FLAG_NONE     DXGI_ADAPTER_FLAG = 0
+	DXGI_ADAPTER_FLAG_REMOTE   DXGI_ADAPTER_FLAG = 1
+	DXGI_ADAPTER_FLAG_SOFTWARE DXGI_ADAPTER_FLAG = 2
+)
+
+type DXGI_ADAPTER_DESC1 struct {
+	_ structs.HostLayout
+
+	Description           [128]uint16
+	VendorId              UINT
+	DeviceId              UINT
+	SubSysId              UINT
+	Revision              UINT
+	DedicatedVideoMemory  SIZE_T
+	DedicatedSystemMemory SIZE_T
+	SharedSystemMemory    SIZE_T
+	AdapterLuid           LUID
+	Flags                 DXGI_ADAPTER_FLAG
+}
+
+func (d *DXGI_ADAPTER_DESC1) DescriptionString() string {
+	i := 0
+	for ; i < len(d.Description); i++ {
+		if d.Description[i] == 0 {
+			break
+		}
+	}
+	if i > 0 {
+		return string(utf16.Decode(d.Description[:i]))
+	}
+	return string(utf16.Decode(d.Description[:]))
 }

@@ -24,9 +24,6 @@ var (
 )
 
 const (
-	D3D11_USAGE_DEFAULT = 0
-	D3D11_USAGE_STAGING = 3
-
 	D3D11_CPU_ACCESS_READ = 0x20000
 
 	D3D11_RLDO_SUMMARY         = 0x1
@@ -47,18 +44,50 @@ func _D3D11CreateDevice(ppDevice **ID3D11Device, ppDeviceContext **ID3D11DeviceC
 	defer factory1.Release()
 
 	var adapter1 *dxgi.IDXGIAdapter1
-	if hr := factory1.EnumAdapters1(0, &adapter1); d3d.HRESULT(hr).Failed() {
-		return fmt.Errorf("failed to enumerate desktop adapter. %w", d3d.HRESULT(hr))
+	var desc dxgi.DXGI_ADAPTER_DESC1
+
+	ai := uint32(0)
+	for {
+		hr := factory1.EnumAdapters1(ai, &adapter1)
+		if d3d.HRESULT(hr).Failed() {
+			break
+		}
+		ai++
+
+		hr = int32(adapter1.GetDesc1(&desc))
+		if d3d.HRESULT(hr).Failed() {
+			adapter1.Release()
+			adapter1 = nil
+			continue
+		}
+
+		if (desc.Flags & dxgi.DXGI_ADAPTER_FLAG_SOFTWARE) == 0 {
+			break
+		}
+		adapter1.Release()
+		adapter1 = nil
 	}
+
+	if adapter1 == nil {
+		hr := factory1.EnumAdapters1(0, &adapter1)
+		if d3d.HRESULT(hr).Failed() {
+			return fmt.Errorf("failed to fallback to default display adapter")
+		}
+	}
+
+	if adapter1 == nil {
+		return fmt.Errorf("no suitable adapter found")
+	}
+
 	defer adapter1.Release()
 
 	fflags := [...]uint32{
-		// 0xc100, // D3D_FEATURE_LEVEL_12_1
-		// 0xc000, // D3D_FEATURE_LEVEL_12_0
+		0xc100, // D3D_FEATURE_LEVEL_12_1
+		0xc000, // D3D_FEATURE_LEVEL_12_0
 		0xb100, // D3D_FEATURE_LEVEL_11_1
 		0xb000, // D3D_FEATURE_LEVEL_11_0
-		// 0xa100, // D3D_FEATURE_LEVEL_10_1
-		// 0xa000, // D3D_FEATURE_LEVEL_10_0
+		0xa100, // D3D_FEATURE_LEVEL_10_1
+		0xa000, // D3D_FEATURE_LEVEL_10_0
 		// 0x9300, // D3D_FEATURE_LEVEL_9_3
 		// 0x9200, // D3D_FEATURE_LEVEL_9_2
 		// 0x9100, // D3D_FEATURE_LEVEL_9_1
@@ -69,10 +98,11 @@ func _D3D11CreateDevice(ppDevice **ID3D11Device, ppDeviceContext **ID3D11DeviceC
 		//  D3D11_CREATE_DEVICE_DEBUG |
 		0
 
+	const D3D_DRIVER_TYPE_UNKNOWN = 0
 	ret, _, _ := syscall.SyscallN(
 		procD3D11CreateDevice.Addr(),
 		uintptr(unsafe.Pointer(adapter1)),   // pAdapter
-		uintptr(0),                          // driverType: 1 = Hardware
+		uintptr(D3D_DRIVER_TYPE_UNKNOWN),    // driverType: 1 = Hardware
 		uintptr(0),                          // software
 		uintptr(flags),                      // flags
 		uintptr(unsafe.Pointer(&fflags[0])), // supported feature levels
